@@ -1,4 +1,9 @@
 import 'package:flutter/material.dart';
+import 'quiz_brain.dart';
+import 'package:rflutter_alert/rflutter_alert.dart';
+
+//this allows us to tap into the quiz brain method
+QuizBrain quizBrain = QuizBrain();
 
 void main() => runApp(Quizzler());
 
@@ -25,6 +30,65 @@ class QuizPage extends StatefulWidget {
 }
 
 class _QuizPageState extends State<QuizPage> {
+  List<Icon> scoreKeeper = [];
+  void checkAnswer(bool userPickedAnswer) {
+    //this is gotten by the method from the question brain which had access to the _question bank which is private
+    bool correctAnswer = quizBrain.getQuestionAnswer();
+
+    setState(
+      () {
+        //TODO: Step 4 - Use IF/ELSE to check if we've reached the end of the quiz. If so,
+        //On the next line, you can also use if (quizBrain.isFinished()) {}, it does the same thing.
+        if (quizBrain.isFinished() == true) {
+          //TODO Step 4 Part A - show an alert using rFlutter_alert,
+
+          //This is the code for the basic alert from the docs for rFlutter Alert:
+          //Alert(context: context, title: "RFLUTTER", desc: "Flutter is awesome.").show();
+
+          //Modified for our purposes:
+          Alert(
+            context: context,
+            title: 'Finished!',
+            desc: 'You\'ve reached the end of the quiz.Clicking cancel will restart',
+          ).show();
+
+          //TODO Step 4 Part C - reset the questionNumber,
+          quizBrain.reset();
+
+          //TODO Step 4 Part D - empty out the scoreKeeper.
+          scoreKeeper = [];
+        }
+
+        //TODO: Step 6 - If we've not reached the end, ELSE do the answer checking steps below 👇
+        else {
+          if (userPickedAnswer == correctAnswer) {
+            scoreKeeper.add(Icon(
+              Icons.check,
+              color: Colors.green,
+            ));
+          } else {
+            scoreKeeper.add(Icon(Icons.close, color: Colors.red));
+          }
+          quizBrain.nextQuestion();
+        }
+      },
+    );
+  }
+  /* List <String> questions =[
+    'You can lead a cow down stairs but not up stairs',
+    'Approximately one quarter of human bones are in the feet.',
+    'A slug\'s blood is green.',
+  ];
+
+  List <bool> answers =[
+    false, true, true
+  ];
+  //these are created from the question class created
+  //the q1 is an object created from the class
+  Question q1= Question( q: 'You can lead a cow down stairs but not up stairs', a: false);
+  */
+  //the question data type is from the question.dart file
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -37,7 +101,7 @@ class _QuizPageState extends State<QuizPage> {
             padding: EdgeInsets.all(10.0),
             child: Center(
               child: Text(
-                'This is where the question text will go.',
+                quizBrain.getQuestionText(),
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 25.0,
@@ -50,7 +114,7 @@ class _QuizPageState extends State<QuizPage> {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(15.0),
-            child: FlatButton(
+            child: MaterialButton(
               textColor: Colors.white,
               color: Colors.green,
               child: Text(
@@ -62,6 +126,8 @@ class _QuizPageState extends State<QuizPage> {
               ),
               onPressed: () {
                 //The user picked true.
+                //to access the question answer from the quoz brain, we use the getter method
+                checkAnswer(true);
               },
             ),
           ),
@@ -69,7 +135,7 @@ class _QuizPageState extends State<QuizPage> {
         Expanded(
           child: Padding(
             padding: EdgeInsets.all(15.0),
-            child: FlatButton(
+            child: MaterialButton(
               color: Colors.red,
               child: Text(
                 'False',
@@ -79,12 +145,15 @@ class _QuizPageState extends State<QuizPage> {
                 ),
               ),
               onPressed: () {
+                checkAnswer(false);
                 //The user picked false.
               },
             ),
           ),
         ),
-        //TODO: Add a Row here as your score keeper
+        Row(
+          children: scoreKeeper,
+        ),
       ],
     );
   }
